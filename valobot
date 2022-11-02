@@ -1,0 +1,119 @@
+from http import client
+from tkinter import BOTH
+import discord
+from discord.ext import commands
+
+bot = commands.Bot(command_prefix='!',intents=discord.Intents.all())
+intents =discord.Intents.all
+
+
+'''
+봇이 반응을 해야하는 명령어인지 구분하기 위해 메세지 앞에 붙이는 접두사(prefix)를 설정합니다. 현재 !로 
+설정되어있습니다. 이곳을 변경시 해당 문자로 명령어를 시작해야합니다. ext에선 discord.Client처럼 
+str.startswith 메서드를 사용할 필요가 없습니다.
+'''
+
+
+ttsmode = "False"
+print("ttsmode on")
+
+deletefinder = "False"
+print("deletefinder on")
+@bot.event
+async def on_ready():
+    print('Logged in as')
+    print(bot.user.name) # 토큰으로 로그인 된 bot 객체에서 discord.User 클래스를 가져온 뒤 name 프로퍼티를 출력
+    print(bot.user.id) # 위와 같은 클래스에서 id 프로퍼티 출력
+    print('------')
+    game = discord.Game("건의사항이나 구현하고 싶은 것이 있다면 @현준을 멘션해줘!")
+    await bot.change_presence(activity=game)
+
+@bot.event
+async def on_member_join(member):
+    msg = "이 서버에 온 것을 환영한다 그대여"
+    await bot.process_commands(member)
+
+@bot.event
+async def on_message(message):
+    if ttsmode == "True" and message.author.name != "만능봇" and str(message.content)[0] != "!":
+        
+        await message.channel.send(message.content, tts = True)
+        
+        await message.delete()
+        
+    
+    await bot.process_commands(message)
+    
+@bot.event
+async def on_message_delete(message):
+    if message.author.name != "만능봇":
+        realmsg = message.author.mention + " 이(가) '" + message.content + "' 라는 내용을 삭제하였음."
+        await message.channel.send(realmsg)
+
+    await bot.process_commands(message)
+
+
+@bot.command()
+async def 핑(ctx):
+    await ctx.send(f'현재 핑 : {round(round(bot.latency, 4)*1000)}ms') # 봇의 핑을 pong! 이라는 메세지와 함께 전송한다. latency는 일정 시간마다 측정됨에 따라 정확하지 않을 수 있다.
+
+
+
+
+    
+@bot.command()
+async def 반복(ctx, arg1, arg2):
+    i = int(arg2)
+    if i>10:
+        await ctx.send("반복 횟수는 10 이하여야 된다. 사유 : 보기 불편함")
+    while i>0:
+        await ctx.send(arg1)
+        i = i-1
+    return None
+
+@bot.command()
+async def 반복티티에스(ctx, arg1, arg2):
+    
+    i = int(arg2)
+    if i>10:
+        await ctx.send("반복 횟수는 10 이하여야 된다. 사유 : 보기 불편함")
+    while i>0:
+        await ctx.send(arg1, tts = True)
+        i = i-1
+    
+
+@bot.command()
+async def 티티에스모드(ctx):
+    global ttsmode
+    if ttsmode == "True":
+        ttsmode = "False"
+    else:
+        ttsmode = "True"
+    realmsg = "입력 메시지 TTS 변환 : " + ttsmode
+    await ctx.send(realmsg)
+
+@bot.command()
+async def 삭제모드(ctx):
+    global deletefinder
+    if deletefinder == "True":
+        deletefinder = "False"
+    else:
+        deletefinder = "True"
+    realmsg = "삭제 메시지 되돌리기 : " + deletefinder
+    await ctx.send(realmsg)
+
+
+        
+
+@bot.command()
+async def 도움말(ctx):
+    embed = discord.Embed(title="만능봇 사용법", description="추가 / 건의사항이 있으면 개발자를 멘션해주세요!", color=0x62c1cc) # Embed의 기본 틀(색상, 메인 제목, 설명)을 잡아줍니다
+    embed.add_field(name="!반복 [메시지] [횟수]", value="입력한 메시지를 지정 횟수만큼 반복합니다.", inline = False)
+    embed.add_field(name="!핑", value="현재 핑을 알려줍니다. 단위 : ms(밀리세컨드, 1000분의 1초이다)", inline = False)
+    embed.add_field(name="!티티에스모드", value="티티에스모드를 켜고 끕니다. 티티에스모드가 켜져 있으면 앞에 !를 붙이지 않은 모든 메시지가 tts로 나오게 됩니다.", inline = False)
+    embed.add_field(name="!반복티티에스 [메시지] [횟수]", value="입력한 메시지를 지정 횟수만큼 반복 입력하고 tts로 말해줍니다.", inline = False)
+    embed.set_footer(text="Developed By 현준") # 하단에 들어가는 조그마한 설명을 잡아줍니다.
+    await ctx.channel.send("자체개발 봇 '만능봇' 사용법입니다!", embed=embed) # embed와 메시지를 함께 보내고 싶으시면 이렇게 사용하시면 됩니다.
+
+
+bot.run("MTAyNTMyMjYwNTUzMzczNjk2MA.G6r7P0.883BU_xDTt8LYxg-rZDmFTKmhogAKeGEy5aZWA")
